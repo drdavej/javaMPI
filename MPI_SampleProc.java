@@ -1,3 +1,5 @@
+import java.awt.Color;
+
 public class MPI_SampleProc extends MPI_Proc
 {
     public MPI_SampleProc(MPI_World world, int rank)
@@ -16,6 +18,20 @@ public class MPI_SampleProc extends MPI_Proc
         int rank = MPI_Comm_rank(MPI_COMM_WORLD);
         int size = MPI_Comm_size(MPI_COMM_WORLD);
         data1[0] = 213 * rank + 524;
+        if (rank == 0)
+        {
+            QV_CreateView(10, 10, 300, 200);
+            QV_ViewBeginScene();
+            QV_ViewSceneBox(Color.BLACK, 0.25, 0.25, 0.66, 0.66);
+            QV_ViewEndScene();
+        }
+        if (rank == 1)
+        {
+            QV_CreateView(310, 10, 300, 200);
+            QV_ViewBeginScene();
+            QV_ViewSceneText(Color.BLACK, 0.3, 0.4,  0.16, "Hi");
+            QV_ViewEndScene();
+        }
         if (rank > 0)
         {
             MPI_Recv(data2, 1, MPI_INT, rank - 1, 0, MPI_COMM_WORLD, status);
@@ -53,7 +69,12 @@ public class MPI_SampleProc extends MPI_Proc
         MPI_Allgather(data1, 1, MPI_INT, data2, 1, MPI_INT, MPI_COMM_WORLD);
         System.out.println("Allgather for " + rank + " returned " + data2[0] + " " + data2[1] + " " + data2[2] + " " + data2[3]);
 
+        Thread.sleep(2000);
 
         MPI_Finalize();
+        if (rank < 2)
+        {
+            QV_ViewDispose();
+        }
     }
 }

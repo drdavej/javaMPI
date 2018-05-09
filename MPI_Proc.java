@@ -1,5 +1,6 @@
 // This class is one instance of a process (thread).  This will be subclassed,
 // with the subclass implementing the 'run' routine.
+import java.awt.Color;
 
 public class MPI_Proc implements Runnable
 {
@@ -48,6 +49,8 @@ public class MPI_Proc implements Runnable
     private MPI_DataConnection _collectiveConn;
     private MPI_DataConnection _collectiveConn2;
 
+    private QV_View _myView;
+
     public MPI_Proc(MPI_World world, int rank)
     {
         _world = world;
@@ -58,6 +61,7 @@ public class MPI_Proc implements Runnable
         _imBlockedForCollective = null;
         _collectiveConn = null;
         _collectiveConn2 = null;
+        _myView = null;
     }
 
     public void setThread(Thread thread)
@@ -92,6 +96,7 @@ public class MPI_Proc implements Runnable
             _world.error("Process " + _rank + " in state " + ProcStateToString(_state) + " but expected " + ProcStateToString(MPI_ProcState.FINALIZED));
         }
         _state = MPI_ProcState.STOPPED;
+        _myView = null;
     }
 
     // This function is overwritten
@@ -863,6 +868,72 @@ public class MPI_Proc implements Runnable
         for (MPI_PendingMessage pnd = _messages; pnd != null; pnd = pnd.next())
         {
             pnd.status(sendToErr, _world);
+        }
+    }
+
+    //------------------------------------------------------------------
+    // Routines for the QV_View package
+    //------------------------------------------------------------------
+
+    public void QV_CreateView(int x, int y, int wid, int hgt)
+    {
+        if (_myView == null)
+        {
+            _myView = new QV_View(_rank, x, y, wid, hgt);
+        }
+    }
+
+    public void QV_DestroyView()
+    {
+        _myView = null;
+    }
+
+    public void QV_ViewBeginScene()
+    {
+        if (_myView != null)
+        {
+            _myView.beginView();
+        }
+    }
+
+    public void QV_ViewEndScene()
+    {
+        if (_myView != null)
+        {
+            _myView.endView();
+        }
+    }
+
+    public void QV_ViewSceneBox(Color color, double x0, double y0, double x1, double y1)
+    {
+        if (_myView != null)
+        {
+            _myView.box(color, x0, y0, x1, y1);
+        }
+    }
+
+    public void QV_ViewSceneLine(Color color, double x0, double y0, double x1, double y1)
+    {
+        if (_myView != null)
+        {
+            _myView.line(color, x0, y0, x1, y1);
+        }
+    }
+
+    public void QV_ViewSceneText(Color color, double x, double y, double size, String msg)
+    {
+        if (_myView != null)
+        {
+            _myView.text(color, x, y, size, msg);
+        }
+    }
+
+    public void QV_ViewDispose()
+    {
+        if (_myView != null)
+        {
+            _myView.dispose();
+            _myView = null;
         }
     }
 }

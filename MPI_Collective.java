@@ -86,10 +86,7 @@ public class MPI_Collective
         for (int i = 0 ; i < len; i++)
         {
             MPI_Proc proc = _world.findProc(i);
-            if (proc != _root)
-            {
-                dest.reduceFrom(proc.collectiveConn(), i, _op);
-            }
+            dest.reduceFrom(proc.collectiveConn(), i, _op);
         }
     }
 
@@ -97,7 +94,7 @@ public class MPI_Collective
     {
         int len = _world.numProcs();
         MPI_DataConnection dest = _world.findProc(0).collectiveConn2();
-        for (int i = 1 ; i < len; i++)
+        for (int i = 0 ; i < len; i++)
         {
             MPI_Proc proc = _world.findProc(i);
             dest.reduceFrom(proc.collectiveConn(), i, _op);
