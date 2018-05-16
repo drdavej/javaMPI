@@ -301,6 +301,7 @@ public class MPI_Proc implements Runnable
                 // We have a message, but it must have come from the destination
                 // (because it doesn't have a source).  Send to it.
                 // Set the src values for this message
+                msg.setSrc(this);
                 msg.setSource(conn);
 
                 msg.clearDestinationBlocked();
@@ -427,11 +428,15 @@ public class MPI_Proc implements Runnable
             _world.error(4, "Process " + _rank + " Communicator not set to MPI_COMM_WORLD");
         }
 
-        MPI_Proc src = _world.findProc(srcID);
-        if (src == null)
+        MPI_Proc src = null;
+        if (srcID != MPI_ANY_SOURCE)
         {
-            _world.error(4, "No process with rank " + srcID);
-            return;
+            src = _world.findProc(srcID);
+            if (src == null)
+            {
+                _world.error(4, "No process with rank " + srcID);
+                return;
+            }
         }
 
         // See if there is a pending message (is waiting for me)
@@ -440,6 +445,11 @@ public class MPI_Proc implements Runnable
             MPI_PendingMessage msg = getDstMessage(srcID, tag, datatype);
             if (msg != null)
             {
+                if (src == null)
+                {
+                    src = msg.from();
+                }
+
                 // We have a message, receive from it.
                 // Set the dst values for this message
                 msg.setDestination(conn);
@@ -461,7 +471,10 @@ public class MPI_Proc implements Runnable
             // There wasn't a pending message, so create one here, then wait
             msg = createNewMessage(src, tag);
             msg.setDestination(conn);
-            checkForDeadlock(src, 5, false);
+            if (srcID != MPI_ANY_SOURCE)
+            {
+                checkForDeadlock(src, 5, false);
+            }
             msg.setDestinationBlocked();
             _imBlockedForProc = src;
             while (msg.destinationBlocked())
@@ -477,7 +490,7 @@ public class MPI_Proc implements Runnable
             }
             if (status != MPI_STATUS_IGNORE)
             {
-                status.MPI_SOURCE = msg.from().rank();
+                status.MPI_SOURCE = (msg.from() == null) ? MPI_ANY_SOURCE : msg.from().rank();
                 status.MPI_TAG = msg.tag();
                 status.MPI_COUNT = msg.dataSrc().count();
             }
@@ -802,7 +815,7 @@ public class MPI_Proc implements Runnable
         MPI_PendingMessage msg;
         for (msg = _messages; msg != null; msg = msg.next())
         {
-            if (sourceID != MPI_ANY_SOURCE && msg.from().rank() != sourceID)
+            if (sourceID != MPI_ANY_SOURCE && msg.from() != null && msg.from().rank() != sourceID)
             {
                 continue;
             }

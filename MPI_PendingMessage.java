@@ -43,6 +43,7 @@ public class MPI_PendingMessage
     {
         _dataSrc = src;
     }
+    public void setSrc(MPI_Proc src) { if (_src == null) { _src = src; } }
 
     public void setDestination(MPI_DataConnection dst)
     {
