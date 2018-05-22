@@ -24,6 +24,9 @@ public class MPI_SampleProc extends MPI_Proc
             QV_ViewBeginScene();
             QV_ViewSceneBox(Color.BLACK, 0.25, 0.25, 0.66, 0.66);
             QV_ViewEndScene();
+            Thread.sleep(200);
+            MPI_Recv(data2, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, status);
+            System.out.println("ANY_SOURCE received from " + status.MPI_SOURCE);
         }
         if (rank == 1)
         {
@@ -31,10 +34,12 @@ public class MPI_SampleProc extends MPI_Proc
             QV_ViewBeginScene();
             QV_ViewSceneText(Color.BLACK, 0.3, 0.4,  0.16, "Hi");
             QV_ViewEndScene();
+            MPI_Send(data1, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
         }
         if (rank > 0)
         {
-            MPI_Recv(data2, 1, MPI_INT, rank - 1, 0, MPI_COMM_WORLD, status);
+            //MPI_Recv(data2, 1, MPI_INT, rank - 1, 0, MPI_COMM_WORLD, status);
+            MPI_Recv(data2, 1, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, status);
             System.out.println("Node " + rank + " received " + data2[0]);
         }
         if (rank < size - 1)

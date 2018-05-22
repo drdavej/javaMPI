@@ -303,6 +303,8 @@ public class MPI_Proc implements Runnable
                 // Set the src values for this message
                 msg.setSrc(this);
                 msg.setSource(conn);
+                // The message may have an ANY_TAG, so set the message to my tag
+                msg.setTag(tag);
 
                 msg.clearDestinationBlocked();
 
@@ -819,7 +821,7 @@ public class MPI_Proc implements Runnable
             {
                 continue;
             }
-            if (tag != MPI_ANY_TAG && msg.tag() != tag)
+            if (tag != MPI_ANY_TAG && msg.tag() != MPI_ANY_TAG && msg.tag() != tag)
             {
                 continue;
             }
